@@ -1,0 +1,20 @@
+{
+  "name": "web3-chess-nft-marketplace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Full-stack Web3 chess collectibles marketplace built with Solidity, Ethereum/Base, ERC-721, Next.js and TypeScript.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=@chess/web",
+    "dev:api": "npm run dev --workspace=@chess/api",
+    "build:web": "npm run build --workspace=@chess/web",
+    "build:api": "npm run build --workspace=@chess/api",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

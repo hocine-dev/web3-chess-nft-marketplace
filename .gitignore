@@ -21,3 +21,20 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+# Node / Next
+node_modules/
+.next/
+dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Foundry
+packages/contracts/out/
+packages/contracts/cache/
+packages/contracts/broadcast/
+
+# Logs
+*.log
