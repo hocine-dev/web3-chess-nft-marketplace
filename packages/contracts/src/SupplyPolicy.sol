@@ -16,6 +16,7 @@ contract SupplyPolicy is AccessControl, ISupplyPolicy {
     struct SeriesPolicy {
         uint64 maxSupply;
         uint64 minted;
+        ChessTypes.Rarity rarity;
         bool configured;
     }
 
@@ -30,6 +31,9 @@ contract SupplyPolicy is AccessControl, ISupplyPolicy {
     error SupplyExceeded(bytes32 seriesId, uint256 minted, uint256 maxSupply);
 
     error SeriesAlreadyConfigured(bytes32 seriesId);
+    error InvalidSeriesRarity(
+        bytes32 seriesId, ChessTypes.Rarity expected, ChessTypes.Rarity provided
+    );
 
     event SeriesPolicyConfigured(bytes32 indexed seriesId, uint64 maxSupply);
 
@@ -48,13 +52,7 @@ contract SupplyPolicy is AccessControl, ISupplyPolicy {
     /// @notice Computes the unique identifier of a collectible series.
     function seriesId(ChessTypes.PieceData calldata data) public pure override returns (bytes32) {
         return keccak256(
-            abi.encode(
-                data.season,
-                uint8(data.pieceType),
-                uint8(data.side),
-                uint8(data.material),
-                uint8(data.rarity)
-            )
+            abi.encode(data.season, uint8(data.pieceType), uint8(data.side), uint8(data.material))
         );
     }
 
@@ -81,6 +79,7 @@ contract SupplyPolicy is AccessControl, ISupplyPolicy {
         }
 
         policy.maxSupply = maxSupply;
+        policy.rarity = data.rarity;
         policy.configured = true;
 
         emit SeriesPolicyConfigured(id, maxSupply);
@@ -95,6 +94,10 @@ contract SupplyPolicy is AccessControl, ISupplyPolicy {
 
         if (!policy.configured) {
             revert SeriesNotConfigured(id);
+        }
+
+        if (data.rarity != policy.rarity) {
+            revert InvalidSeriesRarity(id, policy.rarity, data.rarity);
         }
 
         if (policy.minted >= policy.maxSupply) {

@@ -21,9 +21,6 @@ library ChessTypes {
         Silver,
         Gold,
         Platinum,
-        Obsidian,
-        Emerald,
-        Sapphire,
         Diamond
     }
 

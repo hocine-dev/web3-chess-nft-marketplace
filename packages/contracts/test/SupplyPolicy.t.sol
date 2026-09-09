@@ -295,4 +295,41 @@ contract SupplyPolicyTest is Test {
 
         assertEq(supplyPolicy.remainingSupply(data), 0);
     }
+
+    function testRarityDoesNotChangeSeriesId() public view {
+        ChessTypes.PieceData memory data1 = _diamondQueen();
+
+        ChessTypes.PieceData memory data2 = _diamondQueen();
+
+        data2.rarity = ChessTypes.Rarity.Rare;
+
+        assertEq(supplyPolicy.seriesId(data1), supplyPolicy.seriesId(data2));
+    }
+
+    function testCannotConsumeWithWrongRarity() public {
+        ChessTypes.PieceData memory officialData = _diamondQueen();
+
+        vm.prank(admin);
+
+        supplyPolicy.configureSeries(officialData, 1);
+
+        ChessTypes.PieceData memory wrongData = _diamondQueen();
+
+        wrongData.rarity = ChessTypes.Rarity.Rare;
+
+        bytes32 id = supplyPolicy.seriesId(wrongData);
+
+        vm.prank(consumer);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                SupplyPolicy.InvalidSeriesRarity.selector,
+                id,
+                ChessTypes.Rarity.Mythic,
+                ChessTypes.Rarity.Rare
+            )
+        );
+
+        supplyPolicy.consume(wrongData);
+    }
 }
