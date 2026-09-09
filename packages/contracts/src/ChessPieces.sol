@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {
     ERC721URIStorage
 } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 
 import { ChessTypes } from "./types/ChessTypes.sol";
+import { ISupplyPolicy } from "./interfaces/ISupplyPolicy.sol";
 
 /// @title ChessPieces
 /// @notice ERC-721 contract representing unique Web3 chess collectibles.
@@ -17,9 +17,12 @@ contract ChessPieces is ERC721URIStorage, AccessControl {
 
     uint256 private _nextTokenId = 1;
 
+    ISupplyPolicy public immutable supplyPolicy;
+
     mapping(uint256 tokenId => ChessTypes.PieceData data) private _pieceData;
 
     error InvalidAdmin();
+    error InvalidSupplyPolicy();
     error EmptyTokenURI();
     error InvalidSeason();
 
@@ -34,20 +37,24 @@ contract ChessPieces is ERC721URIStorage, AccessControl {
         string tokenURI
     );
 
-    constructor(address initialAdmin) ERC721("Web3 Chess Collectibles", "W3CHESS") {
+    constructor(address initialAdmin, ISupplyPolicy initialSupplyPolicy)
+        ERC721("Web3 Chess Collectibles", "W3CHESS")
+    {
         if (initialAdmin == address(0)) {
             revert InvalidAdmin();
         }
 
+        if (address(initialSupplyPolicy) == address(0)) {
+            revert InvalidSupplyPolicy();
+        }
+
+        supplyPolicy = initialSupplyPolicy;
+
         _grantRole(DEFAULT_ADMIN_ROLE, initialAdmin);
+
         _grantRole(MINTER_ROLE, initialAdmin);
     }
 
-    /// @notice Mints a new unique chess collectible.
-    /// @param to Address receiving the NFT.
-    /// @param uri Metadata URI associated with the collectible.
-    /// @param data On-chain business characteristics of the chess piece.
-    /// @return tokenId Identifier of the newly minted NFT.
     function mint(address to, string calldata uri, ChessTypes.PieceData calldata data)
         external
         onlyRole(MINTER_ROLE)
@@ -60,6 +67,8 @@ contract ChessPieces is ERC721URIStorage, AccessControl {
         if (data.season == 0) {
             revert InvalidSeason();
         }
+
+        supplyPolicy.consume(data);
 
         tokenId = _nextTokenId++;
 
@@ -74,15 +83,12 @@ contract ChessPieces is ERC721URIStorage, AccessControl {
         );
     }
 
-    /// @notice Returns the business characteristics of a collectible.
-    /// @param tokenId NFT identifier.
     function pieceData(uint256 tokenId) external view returns (ChessTypes.PieceData memory) {
         _requireOwned(tokenId);
 
         return _pieceData[tokenId];
     }
 
-    /// @notice Returns the ID that will be assigned to the next NFT.
     function nextTokenId() external view returns (uint256) {
         return _nextTokenId;
     }

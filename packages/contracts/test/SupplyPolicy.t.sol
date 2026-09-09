@@ -14,17 +14,14 @@ contract SupplyPolicyTest is Test {
     address internal attacker = address(0xBAD);
 
     function setUp() public {
-    supplyPolicy = new SupplyPolicy(admin);
+        supplyPolicy = new SupplyPolicy(admin);
 
-    vm.startPrank(admin);
+        vm.startPrank(admin);
 
-    supplyPolicy.grantRole(
-        supplyPolicy.CONSUMER_ROLE(),
-        consumer
-    );
+        supplyPolicy.grantRole(supplyPolicy.CONSUMER_ROLE(), consumer);
 
-    vm.stopPrank();
-}
+        vm.stopPrank();
+    }
 
     // -------------------------------------------------
     // Fixtures
