@@ -1,26 +1,36 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import { Script } from "forge-std/Script.sol";
-import { console2 } from "forge-std/console2.sol";
+import { Script, console2 } from "forge-std/Script.sol";
 
 import { ChessPieces } from "../src/ChessPieces.sol";
+import { SupplyPolicy } from "../src/SupplyPolicy.sol";
+import { ISupplyPolicy } from "../src/interfaces/ISupplyPolicy.sol";
 
 contract DeployChessPieces is Script {
-    function run() external returns (ChessPieces chessPieces) {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        address admin = vm.addr(deployerPrivateKey);
+    function run() external returns (SupplyPolicy supplyPolicy, ChessPieces chessPieces) {
+        uint256 privateKey = vm.envUint("PRIVATE_KEY");
 
-        vm.startBroadcast(deployerPrivateKey);
+        address admin = vm.addr(privateKey);
 
-        chessPieces = new ChessPieces(admin);
+        vm.startBroadcast(privateKey);
+
+        // 1. Deploy the supply policy.
+        supplyPolicy = new SupplyPolicy(admin);
+
+        // 2. Deploy the ERC-721 contract and connect it
+        //    permanently to the supply policy.
+        chessPieces = new ChessPieces(admin, ISupplyPolicy(address(supplyPolicy)));
+
+        // 3. Allow ChessPieces to consume series supply.
+        supplyPolicy.grantRole(supplyPolicy.CONSUMER_ROLE(), address(chessPieces));
 
         vm.stopBroadcast();
 
-        console2.log("ChessPieces deployed at:");
-        console2.logAddress(address(chessPieces));
+        console2.log("Admin:", admin);
 
-        console2.log("Admin:");
-        console2.logAddress(admin);
+        console2.log("SupplyPolicy:", address(supplyPolicy));
+
+        console2.log("ChessPieces:", address(chessPieces));
     }
 }
