@@ -38,4 +38,9 @@ library ChessTypes {
         Rarity rarity;
         uint16 season;
     }
+
+    struct EditionData {
+        uint64 number;
+        uint64 maxSupply;
+    }
 }

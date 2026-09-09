@@ -87,7 +87,12 @@ contract SupplyPolicy is AccessControl, ISupplyPolicy {
 
     /// @notice Consumes one unit of supply.
     /// @dev Intended to be called by ChessPieces during minting.
-    function consume(ChessTypes.PieceData calldata data) external override onlyRole(CONSUMER_ROLE) {
+    function consume(ChessTypes.PieceData calldata data)
+        external
+        override
+        onlyRole(CONSUMER_ROLE)
+        returns (uint64 editionNumber, uint64 maxSupply)
+    {
         bytes32 id = seriesId(data);
 
         SeriesPolicy storage policy = _policies[id];
@@ -105,6 +110,9 @@ contract SupplyPolicy is AccessControl, ISupplyPolicy {
         }
 
         policy.minted++;
+
+        editionNumber = policy.minted;
+        maxSupply = policy.maxSupply;
 
         emit SupplyConsumed(id, policy.minted, policy.maxSupply);
     }

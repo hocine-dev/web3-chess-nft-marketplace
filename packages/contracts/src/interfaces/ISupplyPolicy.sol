@@ -4,7 +4,9 @@ pragma solidity ^0.8.28;
 import { ChessTypes } from "../types/ChessTypes.sol";
 
 interface ISupplyPolicy {
-    function consume(ChessTypes.PieceData calldata data) external;
+    function consume(ChessTypes.PieceData calldata data)
+        external
+        returns (uint64 editionNumber, uint64 maxSupply);
 
     function remainingSupply(ChessTypes.PieceData calldata data) external view returns (uint256);
 

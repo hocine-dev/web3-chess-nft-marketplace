@@ -309,4 +309,86 @@ contract ChessPiecesTest is Test {
 
         assertEq(chessPieces.nextTokenId(), 1);
     }
+
+    function testFirstMintGetsEditionOne() public {
+        ChessTypes.PieceData memory data = _diamondQueen();
+
+        _configureSeries(data, 5);
+
+        vm.prank(admin);
+
+        uint256 tokenId = chessPieces.mint(collector, "ipfs://queen-1.json", data);
+
+        ChessTypes.EditionData memory edition = chessPieces.editionData(tokenId);
+
+        assertEq(edition.number, 1);
+
+        assertEq(edition.maxSupply, 5);
+    }
+
+    function testEditionNumberIncrements() public {
+        ChessTypes.PieceData memory data = _diamondQueen();
+
+        _configureSeries(data, 5);
+
+        vm.startPrank(admin);
+
+        uint256 tokenId1 = chessPieces.mint(collector, "ipfs://queen-1.json", data);
+
+        uint256 tokenId2 = chessPieces.mint(collector, "ipfs://queen-2.json", data);
+
+        uint256 tokenId3 = chessPieces.mint(collector, "ipfs://queen-3.json", data);
+
+        vm.stopPrank();
+
+        ChessTypes.EditionData memory edition1 = chessPieces.editionData(tokenId1);
+
+        ChessTypes.EditionData memory edition2 = chessPieces.editionData(tokenId2);
+
+        ChessTypes.EditionData memory edition3 = chessPieces.editionData(tokenId3);
+
+        assertEq(edition1.number, 1);
+
+        assertEq(edition2.number, 2);
+
+        assertEq(edition3.number, 3);
+
+        assertEq(edition1.maxSupply, 5);
+
+        assertEq(edition2.maxSupply, 5);
+
+        assertEq(edition3.maxSupply, 5);
+    }
+
+    function testDifferentSeriesHaveIndependentEditionNumbers() public {
+        ChessTypes.PieceData memory queen = _diamondQueen();
+
+        ChessTypes.PieceData memory knight = _genesisGoldKnight();
+
+        _configureSeries(queen, 5);
+
+        _configureSeries(knight, 100);
+
+        vm.startPrank(admin);
+
+        uint256 queen1 = chessPieces.mint(collector, "ipfs://queen-1.json", queen);
+
+        uint256 queen2 = chessPieces.mint(collector, "ipfs://queen-2.json", queen);
+
+        uint256 knight1 = chessPieces.mint(collector, "ipfs://knight-1.json", knight);
+
+        vm.stopPrank();
+
+        ChessTypes.EditionData memory queenEdition1 = chessPieces.editionData(queen1);
+
+        ChessTypes.EditionData memory queenEdition2 = chessPieces.editionData(queen2);
+
+        ChessTypes.EditionData memory knightEdition1 = chessPieces.editionData(knight1);
+
+        assertEq(queenEdition1.number, 1);
+
+        assertEq(queenEdition2.number, 2);
+
+        assertEq(knightEdition1.number, 1);
+    }
 }

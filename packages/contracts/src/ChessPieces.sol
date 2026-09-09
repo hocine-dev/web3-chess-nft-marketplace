@@ -21,6 +21,8 @@ contract ChessPieces is ERC721URIStorage, AccessControl {
 
     mapping(uint256 tokenId => ChessTypes.PieceData data) private _pieceData;
 
+    mapping(uint256 tokenId => ChessTypes.EditionData data) private _editionData;
+
     error InvalidAdmin();
     error InvalidSupplyPolicy();
     error EmptyTokenURI();
@@ -68,7 +70,7 @@ contract ChessPieces is ERC721URIStorage, AccessControl {
             revert InvalidSeason();
         }
 
-        supplyPolicy.consume(data);
+        (uint64 editionNumber, uint64 maxSupply) = supplyPolicy.consume(data);
 
         tokenId = _nextTokenId++;
 
@@ -78,9 +80,18 @@ contract ChessPieces is ERC721URIStorage, AccessControl {
 
         _pieceData[tokenId] = data;
 
+        _editionData[tokenId] =
+            ChessTypes.EditionData({ number: editionNumber, maxSupply: maxSupply });
+
         emit ChessPieceMinted(
             tokenId, to, data.pieceType, data.side, data.material, data.rarity, data.season, uri
         );
+    }
+
+    function editionData(uint256 tokenId) external view returns (ChessTypes.EditionData memory) {
+        _requireOwned(tokenId);
+
+        return _editionData[tokenId];
     }
 
     function pieceData(uint256 tokenId) external view returns (ChessTypes.PieceData memory) {
