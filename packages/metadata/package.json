@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "validate:catalog": "tsx src/validate-catalog.ts",
+    "validate:assets": "tsx src/validate-assets.ts",
     "generate": "npm run validate:catalog && tsx src/generate.ts"
   },
   "devDependencies": {

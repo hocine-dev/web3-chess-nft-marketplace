@@ -3,6 +3,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  getEditionTraits,
+} from "./edition-traits.js";
+
+import {
   materials,
   pieces,
   SEASON,
@@ -26,14 +30,23 @@ const PUBLIC_APP_URL =
   "http://localhost:3000";
 
 function slug(value: string): string {
-  return value.toLowerCase().replaceAll(" ", "-");
+  return value
+    .toLowerCase()
+    .replaceAll(" ", "-");
 }
 
 async function main() {
-  await fs.rm(OUTPUT_DIR, {
-    recursive: true,
-    force: true,
-  });
+  /*
+   * Remove the previous generated metadata
+   * so every generation starts clean.
+   */
+  await fs.rm(
+    OUTPUT_DIR,
+    {
+      recursive: true,
+      force: true,
+    },
+  );
 
   let generated = 0;
 
@@ -43,7 +56,9 @@ async function main() {
       pieceIndex < pieces.length;
       pieceIndex++
     ) {
-      const piece = pieces[pieceIndex];
+      const piece =
+        pieces[pieceIndex];
+
       const maxSupply =
         material.supplies[pieceIndex];
 
@@ -62,6 +77,15 @@ async function main() {
           const sideSlug =
             slug(side);
 
+          /*
+           * Example:
+           *
+           * generated/
+           * season-1/
+           * platinum/
+           * white/
+           * queen/
+           */
           const directory = path.join(
             OUTPUT_DIR,
             materialSlug,
@@ -69,33 +93,82 @@ async function main() {
             pieceSlug,
           );
 
-          await fs.mkdir(directory, {
-            recursive: true,
-          });
+          await fs.mkdir(
+            directory,
+            {
+              recursive: true,
+            },
+          );
 
+          /*
+           * Example:
+           *
+           * season-1/platinum/white/queen/2
+           */
           const assetPath =
-            `season-1/${materialSlug}/${sideSlug}/${pieceSlug}/${edition}`;
+            `season-${SEASON}/` +
+            `${materialSlug}/` +
+            `${sideSlug}/` +
+            `${pieceSlug}/` +
+            `${edition}`;
+
+          /*
+           * Deterministic visual traits.
+           *
+           * The same collectible always receives
+           * the same traits when regenerated.
+           */
+          const editionTraits =
+            getEditionTraits({
+              season: SEASON,
+              side,
+              material: material.name,
+              piece: piece.type,
+              rarity: piece.rarity,
+              edition,
+              maxSupply,
+            });
 
           const metadata = {
             name:
-              `${side} ${material.name} ${piece.type} ` +
+              `${side} ` +
+              `${material.name} ` +
+              `${piece.type} ` +
               `#${edition}/${maxSupply}`,
 
             description:
-              `${side} ${material.name} ${piece.type} ` +
-              `collectible from Web3 Chess Season ${SEASON}.`,
+              `${side} ` +
+              `${material.name} ` +
+              `${piece.type} collectible ` +
+              `from Web3 Chess Season ${SEASON}.`,
 
+            /*
+             * Temporary IPFS paths.
+             *
+             * The real CID will be supplied later
+             * when the final assets are ready.
+             */
             image:
-              `${ASSET_BASE_URI}/${assetPath}.png`,
+              `${ASSET_BASE_URI}/` +
+              `${assetPath}.png`,
 
             animation_url:
-              `${ASSET_BASE_URI}/${assetPath}.glb`,
+              `${ASSET_BASE_URI}/` +
+              `${assetPath}.glb`,
 
             external_url:
-              `${PUBLIC_APP_URL}/collectibles/season-1/` +
-              `${materialSlug}/${sideSlug}/${pieceSlug}/${edition}`,
+              `${PUBLIC_APP_URL}/` +
+              `collectibles/` +
+              `season-${SEASON}/` +
+              `${materialSlug}/` +
+              `${sideSlug}/` +
+              `${pieceSlug}/` +
+              `${edition}`,
 
             attributes: [
+              /*
+               * Core collectible identity.
+               */
               {
                 trait_type: "Piece",
                 value: piece.type,
@@ -116,6 +189,10 @@ async function main() {
                 trait_type: "Season",
                 value: SEASON,
               },
+
+              /*
+               * Edition information.
+               */
               {
                 trait_type: "Edition",
                 value: edition,
@@ -123,6 +200,40 @@ async function main() {
               {
                 trait_type: "Max Supply",
                 value: maxSupply,
+              },
+
+              /*
+               * Visual edition traits.
+               */
+              {
+                trait_type: "Engraving",
+                value:
+                  editionTraits.engraving,
+              },
+              {
+                trait_type: "Gem",
+                value:
+                  editionTraits.gem,
+              },
+              {
+                trait_type: "Finish",
+                value:
+                  editionTraits.finish,
+              },
+              {
+                trait_type: "Base Style",
+                value:
+                  editionTraits.baseStyle,
+              },
+              {
+                trait_type: "Aura",
+                value:
+                  editionTraits.aura,
+              },
+              {
+                trait_type: "Edition Mark",
+                value:
+                  editionTraits.editionMark,
               },
             ],
           };
@@ -150,6 +261,12 @@ async function main() {
     `Generated ${generated} metadata files.`,
   );
 
+  /*
+   * Safety check.
+   *
+   * Season 1 must always generate exactly
+   * 3960 collectible metadata files.
+   */
   if (generated !== 3960) {
     throw new Error(
       `Expected 3960 files, got ${generated}`,
@@ -158,6 +275,11 @@ async function main() {
 }
 
 main().catch((error) => {
+  console.error(
+    "Metadata generation failed:",
+  );
+
   console.error(error);
+
   process.exit(1);
 });
