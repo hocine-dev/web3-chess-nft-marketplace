@@ -38,3 +38,5 @@ packages/contracts/broadcast/
 
 # Logs
 *.log
+# Generated metadata
+packages/metadata/generated/
