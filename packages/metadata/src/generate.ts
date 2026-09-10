@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   materials,
@@ -8,8 +9,12 @@ import {
   sides,
 } from "./season1.js";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const OUTPUT_DIR = path.resolve(
-  "packages/metadata/generated/season-1",
+  __dirname,
+  "../generated/season-1",
 );
 
 const ASSET_BASE_URI =

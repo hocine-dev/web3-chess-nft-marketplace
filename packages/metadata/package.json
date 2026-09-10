@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate": "tsx src/generate.ts"
+    "validate:catalog": "tsx src/validate-catalog.ts",
+    "generate": "npm run validate:catalog && tsx src/generate.ts"
   },
   "devDependencies": {
     "tsx": "^4.20.0",
