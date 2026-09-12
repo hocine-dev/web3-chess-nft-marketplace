@@ -6,7 +6,9 @@
   "scripts": {
     "validate:catalog": "tsx src/validate-catalog.ts",
     "validate:assets": "tsx src/validate-assets.ts",
-    "generate": "npm run validate:catalog && tsx src/generate.ts"
+    "generate": "npm run validate:catalog && tsx src/generate.ts",
+    "validate:testnet-assets": "tsx src/validate-testnet-assets.ts",
+    "generate:testnet": "npm run validate:testnet-assets && tsx src/generate-testnet.ts"
   },
   "devDependencies": {
     "tsx": "^4.20.0",
