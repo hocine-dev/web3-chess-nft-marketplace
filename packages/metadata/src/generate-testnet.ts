@@ -148,7 +148,6 @@ async function main() {
     );
 
     const assetPath =
-      `season-${SEASON}/` +
       `${materialSlug}/` +
       `${sideSlug}/` +
       `${pieceSlug}/` +
@@ -174,15 +173,6 @@ async function main() {
       animation_url:
         `${ASSET_BASE_URI}/` +
         `${assetPath}.glb`,
-
-      external_url:
-        `${PUBLIC_APP_URL}/` +
-        `collectibles/` +
-        `season-${SEASON}/` +
-        `${materialSlug}/` +
-        `${sideSlug}/` +
-        `${pieceSlug}/` +
-        `${edition}`,
 
       attributes: [
         {
