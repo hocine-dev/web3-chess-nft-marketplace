@@ -9,11 +9,9 @@ import { ISupplyPolicy } from "../src/interfaces/ISupplyPolicy.sol";
 
 contract DeployChessPieces is Script {
     function run() external returns (SupplyPolicy supplyPolicy, ChessPieces chessPieces) {
-        uint256 privateKey = vm.envUint("PRIVATE_KEY");
+        address admin = vm.envAddress("ADMIN");
 
-        address admin = vm.addr(privateKey);
-
-        vm.startBroadcast(privateKey);
+        vm.startBroadcast();
 
         // 1. Deploy the supply policy.
         supplyPolicy = new SupplyPolicy(admin);

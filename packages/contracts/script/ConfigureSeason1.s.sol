@@ -8,11 +8,9 @@ import { Season1Catalog } from "../src/catalog/Season1Catalog.sol";
 
 contract ConfigureSeason1 is Script {
     function run() external {
-        uint256 privateKey = vm.envUint("PRIVATE_KEY");
-
         address supplyPolicyAddress = vm.envAddress("SUPPLY_POLICY");
 
-        address admin = vm.addr(privateKey);
+        address admin = vm.envAddress("ADMIN");
 
         SupplyPolicy supplyPolicy = SupplyPolicy(supplyPolicyAddress);
 
@@ -23,7 +21,7 @@ contract ConfigureSeason1 is Script {
 
         Season1Catalog.SeriesConfig[] memory configs = Season1Catalog.series();
 
-        vm.startBroadcast(privateKey);
+        vm.startBroadcast();
 
         for (uint256 i = 0; i < configs.length; i++) {
             supplyPolicy.configureSeries(configs[i].data, configs[i].maxSupply);
